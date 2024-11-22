@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kassabon Systeem</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      line-height: 1.6;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    form {
+      max-width: 400px;
+      margin: 0 auto 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: #f4f4f4;
+    }
+
+    .product, .options, .payment {
+      margin-bottom: 15px;
+    }
+
+    input[type="number"], input[type="email"] {
+      width: calc(100% - 20px);
+      padding: 5px;
+      margin-top: 5px;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #receipt {
+      max-width: 300px;
+      margin: 20px auto;
+      padding: 20px;
+      border: 2px solid #000;
+      background-color: #fff;
+      font-family: "Courier New", Courier, monospace;
+      text-align: left;
+    }
+
+    #receipt h2 {
+      text-align: center;
+      margin-bottom: 10px;
+      border-bottom: 2px dashed #000;
+      padding-bottom: 5px;
+    }
+
+    #receipt ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #receipt ul li {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    #receipt .separator {
+      border-top: 2px dashed #000;
+      margin: 10px 0;
+    }
+
+    #receipt .total {
+      font-weight: bold;
+      margin-top: 10px;
+      text-align: right;
+    }
+
+    #footer {
+      text-align: center;
+      font-size: 12px;
+      margin-top: 20px;
+    }
+
+    .small-text {
+      font-size: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Kassa Bon Systeem</h1>
+  <form id="orderForm">
+    <div class="product">
+      <label>Email:</label>
+      <input type="email" id="email" placeholder="Voer uw email in" required>
+    </div>
+    <div class="product">
+      <label>Puddingbroodjes (€1.00):</label>
+      <input type="number" min="0" step="1" id="puddingbroodjes" value="0">
+    </div>
+    <div class="product">
+      <label>Kwarkbollen (€1.50):</label>
+      <input type="number" min="0" step="1" id="kwarkbollen" value="0">
+    </div>
+
+    <h3>Opties (€0.05 per stuk):</h3>
+    <div class="options">
+      <label>Poedersuiker (aantal):</label>
+      <input type="number" min="0" step="1" id="poedersuiker" value="0">
+    </div>
+
+    <div class="payment">
+      <h3>Betaalmethode:</h3>
+      <label><input type="radio" name="paymentMethod" value="Pinnen" required> Pinnen</label>
+      <label><input type="radio" name="paymentMethod" value="Contant" required> Contant</label>
+    </div>
+
+    <button type="button" id="generateReceipt">Maak Kassabon</button>
+    <button type="button" id="downloadReceiptImage">Download Kassabon als Foto</button>
+  </form>
+
+  <div id="receipt" style="display: none;">
+    <h2>KASSABON</h2>
+    <ul id="receiptItems"></ul>
+    <div class="separator"></div>
+    <div id="totalAmount" class="total"></div>
+    <div class="separator"></div>
+    <div id="shopInfo"></div>
+    <div id="schoolName" style="text-align: center; font-weight: bold; margin-top: 10px;"></div>
+    <div id="footer">Bedankt voor uw aankoop!<br>Tot ziens!</div>
+    <p class="small-text">Bewaar uw bon goed als bewijs van aankoop.</p>
+  </div>
+
+  <script>
+    const prices = {
+      puddingbroodjes: 1.00,
+      kwarkbollen: 1.50,
+      option: 0.05, 
+    };
+
+    document.getElementById('generateReceipt').addEventListener('click', () => {
+      const email = document.getElementById('email').value.trim();
+      if (!email) {
+        alert('Voer een geldig e-mailadres in!');
+        return;
+      }
+
+      const puddingbroodjes = parseInt(document.getElementById('puddingbroodjes').value) || 0;
+      const kwarkbollen = parseInt(document.getElementById('kwarkbollen').value) || 0;
+      const poedersuiker = parseInt(document.getElementById('poedersuiker').value) || 0;
+
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+      if (!paymentMethod) {
+        alert('Kies een betaalmethode!');
+        return;
+      }
+
+      let receiptItems = '';
+      let total = 0;
+
+      if (puddingbroodjes > 0) {
+        const subtotal = puddingbroodjes * prices.puddingbroodjes;
+        receiptItems += `<li><span>Puddingbroodjes x${puddingbroodjes}</span><span>€${subtotal.toFixed(2)}</span></li>`;
+        total += subtotal;
+      }
+
+      if (kwarkbollen > 0) {
+        const subtotal = kwarkbollen * prices.kwarkbollen;
+        receiptItems += `<li><span>Kwarkbollen x${kwarkbollen}</span><span>€${subtotal.toFixed(2)}</span></li>`;
+        total += subtotal;
+      }
+
+      if (poedersuiker > 0) {
+        receiptItems += `<li><span>Poedersuiker x${poedersuiker}</span><span>€${prices.option.toFixed(2)}</span></li>`;
+        total += prices.option;
+      }
+
+      const today = new Date();
+      const formattedDate = today.toLocaleDateString('nl-NL');
+
+      document.getElementById('receiptItems').innerHTML = receiptItems;
+      document.getElementById('totalAmount').innerHTML = `TOTAAL: €${total.toFixed(2)}`;
+      document.getElementById('shopInfo').innerHTML = `
+        <p>Locatie: Kruidlaan 1 ,8082 CA Elburg</p>
+        <p>Uw email: ${email}</p>
+        <p>Betaalmethode: ${paymentMethod.value}</p>
+        <p>Datum: ${formattedDate}</p>
+      `;
+      document.getElementById('schoolName').innerText = "Nuborgh Collage Oostenlicht";
+      document.getElementById('receipt').style.display = 'block';
+    });
+
+    document.getElementById('downloadReceiptImage').addEventListener('click', () => {
+      const receipt = document.getElementById('receipt');
+      html2canvas(receipt).then((canvas) => {
+        const link = document.createElement('a');
+        link.download = 'kassabon.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    });
+  </script>
+</body>
+</html>

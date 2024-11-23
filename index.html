@@ -208,10 +208,16 @@
     });
 
     document.getElementById('downloadReceiptImage').addEventListener('click', () => {
+      const email = document.getElementById('email').value.trim();
+      if (!email) {
+        alert('Voer een geldig e-mailadres in voordat u downloadt!');
+        return;
+      }
+      
       const receipt = document.getElementById('receipt');
       html2canvas(receipt).then((canvas) => {
         const link = document.createElement('a');
-        link.download = 'kassabon.png';
+        link.download = `${email}=kassabon.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
       });

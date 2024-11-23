@@ -213,10 +213,11 @@
         alert('Voer een geldig e-mailadres in voordat u downloadt!');
         return;
       }
-
+    
       const receipt = document.getElementById('receipt');
       html2canvas(receipt).then((canvas) => {
-        const sanitizedEmail = email.replace(/[^a-zA-Z0-9]/g, '_'); // Sanitize e-mailadres
+        // Verwijder alle niet-alfanumerieke tekens en vervang met "_"
+        const sanitizedEmail = email.replace(/[^a-zA-Z0-9]/g, '_'); 
         const link = document.createElement('a');
         link.download = `${sanitizedEmail}_kassabon.png`;
         link.href = canvas.toDataURL('image/png');
